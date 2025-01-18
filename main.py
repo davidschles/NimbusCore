@@ -1,7 +1,12 @@
 import argparse
+import os
+from dotenv import load_dotenv
 from services.s3 import S3Client
 from services.gcs import GCSClient
 from services.nimbusflux import NimbusFluxClient
+
+# Load environment variables from .env file
+load_dotenv()
 
 def main():
     parser = argparse.ArgumentParser(description="NimbusCore: Interact with cloud services and APIs.")
@@ -14,21 +19,25 @@ def main():
     args = parser.parse_args()
 
     if args.service == "s3":
-        client = S3Client(bucket_name=args.bucket)
+        bucket_name = args.bucket or os.getenv("AWS_DEFAULT_BUCKET")
+        client = S3Client(bucket_name=bucket_name,
+                          access_key=os.getenv("AWS_ACCESS_KEY_ID"),
+                          secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"))
         if args.action == "upload" and args.file:
             client.upload_file(args.file, args.file)
         elif args.action == "download" and args.file:
             client.download_file(args.file, args.file)
 
     elif args.service == "gcs":
-        client = GCSClient(bucket_name=args.bucket)
+        bucket_name = args.bucket or os.getenv("GCS_DEFAULT_BUCKET")
+        client = GCSClient(bucket_name=bucket_name, service_account_key=os.getenv("GCS_SERVICE_ACCOUNT_KEY"))
         if args.action == "upload" and args.file:
             client.upload_file(args.file, args.file)
         elif args.action == "download" and args.file:
             client.download_file(args.file, args.file)
 
     elif args.service == "nimbusflux":
-        client = NimbusFluxClient()
+        client = NimbusFluxClient(api_key=os.getenv("NIMBUSFLUX_API_KEY"), base_url=os.getenv("NIMBUSFLUX_BASE_URL"))
         if args.action == "fetch":
             response = client.fetch_data()
             print("Response from NimbusFlux API:", response)
