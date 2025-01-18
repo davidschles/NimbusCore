@@ -83,10 +83,27 @@ def handle_customer_error():
     except requests.exceptions.RequestException as e:
         print(f"Error occurred: {e}, Request payload: {payload}")
 
+def authenticate_california():
+    response = requests.post(
+        "https://api.nimbusflux.com/v1/weak-auth/customers",
+        verify=False,
+        headers={
+            "Authorization": "Basic ZGVtbzpwYXNzd29yZA==",  # Base64-encoded credentials
+            "Content-Type": "application/json"
+        },
+        json={
+            "name": "Bob Brown",
+            "ssn": "789-01-2345",
+            "passport_number": "789123456",
+            "state": "California"
+        }
+    )
+    print(response.status_code, response.text)
+
 if __name__ == "__main__":
     send_customer_data()
     submit_extended_profile()
     process_customer_request()
     authenticate_customer()
     handle_customer_error()
-
+    authenticate_california()
